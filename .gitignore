@@ -10,3 +10,4 @@ dist/
 credentials/
 *.pem
 .DS_Store
+deploy.py
