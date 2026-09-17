@@ -1,0 +1,7 @@
+services:
+  scim-bridge:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./credentials:/credentials:ro
