@@ -17,7 +17,7 @@ Team names must match TrueFoundry's pattern (letter, then `A-Za-z0-9_-`, max 50)
 ## Google setup (once)
 
 1. GCP: enable **Admin SDK API**, create a service account (no project IAM role required).
-2. Download a JSON key **or** configure Workload Identity Federation later (v1 uses a key file).
+2. Local/dev: download a JSON key. GKE: bind the pod's Kubernetes SA to this GCP SA with Workload Identity (no key). The GCP SA needs `roles/iam.serviceAccountTokenCreator` **on itself**.
 3. Admin Console → Security → API controls → Domain-wide delegation. Client ID = the SA **Unique ID**. Scopes (exact URLs):
 
 ```
@@ -55,4 +55,15 @@ cp .env.example .env
 npx tsx src/index.ts
 ```
 
-Load env yourself (`export $(grep -v '^#' .env | xargs)`). `GOOGLE_APPLICATION_CREDENTIALS` must point at the key file.
+Load env yourself (`export $(grep -v '^#' .env | xargs)`). Local runs need `GOOGLE_APPLICATION_CREDENTIALS` pointing at the key file.
+
+## GKE Workload Identity
+
+Do not set `GOOGLE_APPLICATION_CREDENTIALS`. The pod uses ADC from the metadata server.
+
+- Annotate the Kubernetes SA: `iam.gke.io/gcp-service-account=<dwd-sa>@<project>.iam.gserviceaccount.com`
+- Bind that K8s SA to the GCP SA (`roles/iam.workloadIdentityUser`)
+- Grant the GCP SA `roles/iam.serviceAccountTokenCreator` on itself (needed to `signJwt` for Domain-wide delegation)
+- Set `GOOGLE_ADMIN_EMAIL` (Workspace admin to impersonate)
+- Optionally set `GOOGLE_SERVICE_ACCOUNT_EMAIL` if metadata cannot resolve the SA email
+

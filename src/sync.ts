@@ -1,10 +1,9 @@
+import { listGroups, listUsers, type DirectoryAuth, type DirectoryGroup, type DirectoryUser } from './google.js';
 import type { BridgeConfig } from './config.js';
-import { listGroups, listUsers, type DirectoryGroup, type DirectoryUser } from './google.js';
 import { toTeamName, sameMembers } from './names.js';
-import { ScimClient, type ScimGroup, type ScimUser } from './scim.js';
-import type { JWT } from 'google-auth-library';
+import { ScimClient, type ScimUser } from './scim.js';
 
-export async function runSync(auth: JWT, scim: ScimClient, config: BridgeConfig): Promise<void> {
+export async function runSync(auth: DirectoryAuth, scim: ScimClient, config: BridgeConfig): Promise<void> {
   const googleGroups = await listGroups(auth, config.googleGroupEmails);
   const googleUsers = await usersForSync(auth, googleGroups, config.googleGroupEmails.length > 0);
   const scimUsers = await scim.listUsers();
@@ -81,7 +80,7 @@ export async function runSync(auth: JWT, scim: ScimClient, config: BridgeConfig)
 }
 
 async function usersForSync(
-  auth: JWT,
+  auth: DirectoryAuth,
   groups: DirectoryGroup[],
   filtered: boolean,
 ): Promise<DirectoryUser[]> {
